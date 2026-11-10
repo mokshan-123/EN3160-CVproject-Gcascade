@@ -1,0 +1,17 @@
+{
+  "status": "generated_from_recorded_metrics",
+  "source_csv_sha256": {
+    "results\\baseline\\session_metrics.csv": "bf6170ee2dd94cd7a2f349dcdaab3aa94e0777da268e957da3596cee5bb2222f",
+    "results\\baseline\\final_evaluation_summary.csv": "7f94028aa9b14643cff0d2c99ee9825bbf2816939d1d977349ab0d24ed11326e"
+  },
+  "figures": {
+    "validation_dice_by_epoch.png": "b629e79da62a8a8725b279af37826ba3b7c77b448f6f2d1cd4bd7e5499885a3e",
+    "validation_dice_iou_by_dataset.png": "a7c9d02df7f80bafc133114bd9a69bdd36cd04617c8ad5f2df82cca0c87f8976"
+  },
+  "completed_epochs": 90,
+  "best_epoch": 19,
+  "best_weighted_validation_dice": 0.8495867109634551,
+  "evaluation_images": 602,
+  "metric_note": "Validation datasets were used for checkpoint selection; not independent holdout tests.",
+  "training_or_inference_executed": false
+}

@@ -143,9 +143,9 @@ conda activate gcascade
 python train_polyp.py --encoder PVT --skip_aggregation additive --train_path ./data/polyp/TrainDataset/ --test_path ./data/polyp/TestDataset/ --train_save ./model_pth/PVT-GCASCADE/
 ```
 
-Before full training, we must verify that the complete official training loop runs successfully with the 15-combination loss, all three scales and validation.
+The completed baseline run verified the official-style 15-combination loss, three training scales and validation; see Section 11 and the recorded training reports.
 
-**Do not treat prior partial smoke tests as successful full-protocol training.**
+**Early smoke tests alone did not verify the full training protocol; the subsequent recorded training run did.**
 
 ## 7. Baseline Evaluation
 
@@ -273,31 +273,25 @@ Dataset files, pretrained model weights, trained checkpoints and private storage
 
 ## 11. Verification and Progress
 
-### Completed
+### Completed and verified
 
-- Five-minute paper presentation
-- Dataset counts and image/mask pairing checks
-- CUDA compatibility test on the RTX 4050
-- Pretrained PVTv2-B2 checkpoint loading
-- PVT-GCASCADE model construction
-- Real-image forward propagation
-- Structure-loss import
-- Backpropagation and AdamW update
-- Batch-size-1 and batch-size-4 partial training smoke tests
-- Minimal NumPy compatibility fix
-- Verified baseline import into the shared repository
+- Baseline environment and PVTv2-B2 pretrained-encoder compatibility checks on an NVIDIA RTX 4050 Laptop GPU.
+- Full official-style three-scale, 15-combination training with resumable optimizer/model state.
+- 90 of 199 planned epochs, completed across 18 five-epoch sessions; training deliberately frozen before the coursework deadline.
+- Model selection on four validation datasets; best image-count-weighted Dice 0.849587 at epoch 19.
+- Evaluation of 602 validation images, with dataset-level Dice/IoU and saved per-image outputs.
+- Interactive Streamlit demo supporting dropdown image selection, user uploads, ground-truth matching and visual comparison.
+- Automated verification of training session scheduling, evaluation behavior and demo panel functions.
+- Reproducible figures generated from recorded CSVs with a figure manifest.
 
-### In Progress / Pending
+### Limitations and pending work
 
-- Full official 15-combination, multi-scale training-loop verification
-- Reliable optimizer-state checkpoint resumption
-- Complete baseline training
-- Quantitative evaluation on all four test datasets
-- Predicted mask visualization and qualitative analysis
-- Controlled robustness experiments
-- Final demonstration integration
+- The planned 199-epoch training schedule was not completed; no improvement after epoch 19 was recorded through epoch 90.
+- The four evaluation datasets were used for checkpoint selection, so these metrics are *validation*, not independent held-out test scores.
+- Mokshan's robustness extension must be reported separately with saved clean/degraded results before it is described as complete.
+- The live demo depends on locally stored checkpoint and dataset files, which are not in Git history.
 
-The earlier batch-size-4 memory test did not include the full official combinatorial loss and therefore does not establish that the complete training loop fits into 6 GB VRAM.
+The earlier batch-size-4 smoke test did not demonstrate the full protocol by itself. The subsequent full training run did use the intended loss and scales; see `docs/training_progress.md` and `docs/final_demo.md`.
 
 ## 12. Experiment Reproducibility
 
@@ -317,7 +311,7 @@ Each experiment should record:
 
 The baseline and extension should be evaluated under matching settings wherever possible.
 
-## Verified research reproduction and demonstration
+## 13. Verified Research Reproduction and Demonstration
 
 Our coursework reproduces **PVT-GCASCADE** for binary polyp segmentation, based on the [original G-CASCADE implementation](https://github.com/SLDGroup/G-CASCADE). The architecture is the original authors' work. We added compatibility fixes, resumable training, evaluation and visualization utilities, automated checks, and a local Streamlit dashboard. Our teammate's robustness investigation is a separate proposed extension; results should only be added once verified.
 
@@ -394,6 +388,39 @@ Use the sidebar to locate the saved `*-best.pth` checkpoint and `data/polyp/Test
 ### Attribution and contribution boundaries
 
 The architecture and original research belong to Rahman and Marculescu (WACV 2024). Our coursework contributions are deployment/compatibility work, full-state resumability, evaluation/reporting, reproducibility checks and an interactive demonstration. **No architectural novelty is claimed.** Robustness tests are a possible research extension and should be documented in their own experiment folder with clean/degraded comparisons, settings, saved metrics and limitations after execution.
+
+### Current repository layout and entry points
+
+```text
+README.md                         Team overview and reproduced results
+train_polyp.py                    Training, checkpoint resume and validation
+lib/                              Original PVT-GCASCADE architecture
+utils/                            Data loading, loss, checkpoint/evaluation helpers
+scripts/web_demo_polyp.py         Streamlit dashboard
+scripts/demo_polyp.py             Single-image inference/panel
+scripts/evaluate_polyp.py         Four-dataset evaluation
+scripts/plot_results.py           Figures from recorded CSV/JSON artifacts
+scripts/run_polyp_session.ps1     Five-epoch resumable training launcher
+tests/                            Automated evaluation and training tests
+results/baseline/                 Lightweight 90-epoch and final metric records
+docs/images/                      Validation figures and source manifest
+docs/final_demo.md                Local demo and evaluation details
+docs/training_progress.md         Frozen training progress
+```
+
+### Presentation quick start
+
+From the repository root, with the compatible `gcascade` environment active and the local model/data files available:
+
+```powershell
+python -m unittest -v tests.test_training_sessions tests.test_polyp_evaluation tests.test_demo_polyp
+python scripts/plot_results.py
+python -m streamlit run scripts/web_demo_polyp.py
+```
+
+For the demo, use the sidebar to select the saved `*-best.pth` file and `data/polyp/TestDataset`, then choose **CVC-ClinicDB** and an image such as **171.png**. The per-image Dice/IoU appear when a matching mask is available. Custom uploads without a mask have a prediction but no ground-truth metrics.
+
+For the panel code map and known limitations, see [Repository and viva guide](docs/REPOSITORY_GUIDE.md).
 
 ## 14. Acknowledgments and Citation
 
