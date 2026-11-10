@@ -317,17 +317,83 @@ Each experiment should record:
 
 The baseline and extension should be evaluated under matching settings wherever possible.
 
-## 13. Final Demonstration
+## Verified research reproduction and demonstration
 
-The planned demonstration will show:
+Our coursework reproduces **PVT-GCASCADE** for binary polyp segmentation, based on the [original G-CASCADE implementation](https://github.com/SLDGroup/G-CASCADE). The architecture is the original authors' work. We added compatibility fixes, resumable training, evaluation and visualization utilities, automated checks, and a local Streamlit dashboard. Our teammate's robustness investigation is a separate proposed extension; results should only be added once verified.
 
-1. The running PVT-GCASCADE segmentation model.
-2. Example colonoscopy images, ground-truth masks and predictions.
-3. Quantitative Dice/mIoU comparisons with the paper.
-4. The effect of selected image degradations.
-5. Controlled baseline-versus-extension robustness comparisons.
+### Research question and scope
 
-Results will be added when verified experiments are completed.
+Can the official PVT-GCASCADE polyp segmentation pipeline be reproduced on a laptop GPU, and how accurately does the saved checkpoint segment images on the four validation datasets? We reproduce the original architecture rather than propose a new decoder.
+
+### Experimental protocol
+
+| Item | Reproduced setting |
+|---|---|
+| Encoder / decoder | PVTv2-B2 / G-CASCADE, additive skip aggregation |
+| Training inputs | 352 × 352, batch size 4, three-scale training |
+| Objective | Combined weighted BCE + weighted IoU; all 15 non-empty decoder-output combinations |
+| Optimizer | AdamW, learning rate 0.0001, weight decay 0.0001 |
+| Run status | 90 of 199 planned epochs, 18 five-epoch sessions |
+| Model selection | Image-count-weighted validation Dice, best epoch 19 |
+| Hardware | NVIDIA RTX 4050 Laptop GPU (6 GB) |
+
+Training was stopped early for the coursework deadline. Later epochs did not exceed the epoch-19 best score. A saved **best model** and **resume checkpoint** serve different purposes and are not interchangeable.
+
+### Recorded validation results
+
+| Dataset | Images | Official-style Dice | Official-style IoU |
+|---|---:|---:|---:|
+| CVC-ClinicDB | 62 | 0.928477 | 0.880758 |
+| Kvasir | 100 | 0.916251 | 0.864641 |
+| CVC-ColonDB | 380 | 0.811656 | 0.729943 |
+| CVC-300 | 60 | 0.897185 | 0.831153 |
+| **Image-weighted overall** | **602** | **0.849587** | **0.777938** |
+
+**Important limitation:** These datasets were also used for model selection, so these are validation results, **not independently held-out test results**. Original paper results and single-run reproduced results should be compared with matching preprocessing and metric definitions, and paper-reported multi-run variability should not be interpreted as uncertainty for our single run.
+
+### Figures generated from saved records
+
+![Epoch-by-epoch validation Dice](docs/images/validation_dice_by_epoch.png)
+
+![Dice and IoU on four datasets](docs/images/validation_dice_iou_by_dataset.png)
+
+Regenerate without model loading or retraining:
+
+```powershell
+conda activate gcascade
+python -m pip install matplotlib
+python scripts/plot_results.py
+```
+
+The script checks the 90-epoch CSV, weighted Dice calculations, dataset counts and best epoch, then saves a JSON manifest containing hashes of the source CSV files and generated figures.
+
+### Live dashboard (local assets required)
+
+```powershell
+conda activate gcascade
+python -m pip install streamlit
+python -m streamlit run scripts/web_demo_polyp.py
+```
+
+Use the sidebar to locate the saved `*-best.pth` checkpoint and `data/polyp/TestDataset`, then choose a dataset and image or upload an image and optional mask. The app shows a binary predicted mask, overlay and ground truth, and computes Dice/IoU **only** when a corresponding mask is available. A verified CVC-ClinicDB example is `171.png` (Dice approximately 0.9757). Weights, datasets and generated prediction masks are not in Git.
+
+### Code and artifact navigation
+
+| Purpose | Location |
+|---|---|
+| Neural network architecture | `lib/networks.py`, `lib/decoders.py`, `lib/gcn_lib/` |
+| Training and checkpoint continuation | `train_polyp.py`, `utils/training_checkpoint.py`, `scripts/run_polyp_session.ps1` |
+| Official-style evaluation | `scripts/evaluate_polyp.py`, `utils/polyp_evaluation.py` |
+| Interactive browser demonstration | `scripts/web_demo_polyp.py` |
+| Training metrics by epoch | `results/baseline/session_metrics.csv` |
+| Best model metadata | `results/baseline/best_model.json` |
+| Per-dataset validation metrics | `results/baseline/final_evaluation_summary.csv` |
+| Reproduction status and caveats | `docs/training_progress.md`, `docs/final_demo.md` |
+| Plot generator and source-hash manifest | `scripts/plot_results.py`, `docs/images/figure_manifest.json` |
+
+### Attribution and contribution boundaries
+
+The architecture and original research belong to Rahman and Marculescu (WACV 2024). Our coursework contributions are deployment/compatibility work, full-state resumability, evaluation/reporting, reproducibility checks and an interactive demonstration. **No architectural novelty is claimed.** Robustness tests are a possible research extension and should be documented in their own experiment folder with clean/degraded comparisons, settings, saved metrics and limitations after execution.
 
 ## 14. Acknowledgments and Citation
 
